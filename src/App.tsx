@@ -2,11 +2,14 @@ import { useState } from "react";
 import './App.css'
 import UploadScreen from "../components/UploadScreen";
 import { UploadedFile } from "../lib/files";
+import ConfigScreen from "../components/ConfigScreen";
 
 function App() {
   // Global State
   const [stepIndex, setStepIndex] = useState(0);
   const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [galleryName, setGalleryName] = useState("");
+  const [backgroundColor, setBackgroundColor] = useState("#000000");
 
   return (
     <div className="w-full flex flex-col gap-4 items-center text-slate-300">
@@ -16,7 +19,12 @@ function App() {
       {
         stepIndex === 0 ?
           <UploadScreen files={files} setFiles={setFiles} /> :
-          <p>Step 2</p>
+          <ConfigScreen
+            galleryName={galleryName}
+            setGalleryName={setGalleryName}
+            backgroundColor={backgroundColor}
+            setBackgroundColor={setBackgroundColor}
+          />
       }
       <div className="flex flex-row gap-4 text-white">
         <button
