@@ -57,7 +57,7 @@ export default function UploadScreen({
       onDragOver={handleDrag}
       onDrop={handleDrop}
     >
-      <p className="text-xl">Drag and drop image files, or click to upload.</p>
+      <p className="text-xl">Drag and drop image files, or click "Browse Files" to upload.</p>
       <input
         type="file"
         multiple

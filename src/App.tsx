@@ -3,6 +3,7 @@ import './App.css'
 import UploadScreen from "../components/UploadScreen";
 import { UploadedFile } from "../lib/files";
 import ConfigScreen from "../components/ConfigScreen";
+import Preview from "../components/Preview";
 
 function App() {
   // Global State
@@ -19,12 +20,14 @@ function App() {
       {
         stepIndex === 0 ?
           <UploadScreen files={files} setFiles={setFiles} /> :
-          <ConfigScreen
-            galleryName={galleryName}
-            setGalleryName={setGalleryName}
-            backgroundColor={backgroundColor}
-            setBackgroundColor={setBackgroundColor}
-          />
+          stepIndex === 1 ?
+            <ConfigScreen
+              galleryName={galleryName}
+              setGalleryName={setGalleryName}
+              backgroundColor={backgroundColor}
+              setBackgroundColor={setBackgroundColor}
+            /> :
+            <Preview imageFiles={files} backgroundColor={backgroundColor} />
       }
       <div className="flex flex-row gap-4 text-white">
         <button
@@ -36,7 +39,8 @@ function App() {
           className="mt-6 cursor-pointer bg-purple-800 disabled:bg-purple-800/40 disabled:text-white/40 transition-colors disabled:cursor-default shadow-md"
           disabled={
             (stepIndex === 0 && files.length === 0) ||
-            (stepIndex === 1)
+            (stepIndex === 1 && (galleryName.length === 0)) ||
+            (stepIndex === 2)
           }
           onClick={() => { setStepIndex((i: number) => i + 1) }}
         >Next Step</button >
