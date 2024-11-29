@@ -52,7 +52,7 @@ export default function UploadScreen({
   };
   return <div className="w-full flex flex-col gap-4 items-center text-slate-300">
     <div
-      className="border-4 border-dashed border-sky-400 text-sky-400 rounded-lg shadow-lg px-12 py-32 mt-8 hover:border-sky-200 hover:text-sky-200 hover:shadow-2xl transition-colors cursor-pointer"
+      className="border-4 border-dashed border-sky-200 text-sky-400 rounded-lg shadow-2xl px-12 py-32 mt-8 hover:border-white hover:text-sky-200 hover:shadow-3xl transition-colors cursor-pointer"
       onDragEnter={handleDrag}
       onDragOver={handleDrag}
       onDrop={handleDrop}
