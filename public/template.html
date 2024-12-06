@@ -9,14 +9,51 @@
       padding: 0;
       height: 100%;
       overflow: hidden !important;
+      font-family: sans;
+    }
+    .controlsHelp {
+      color: rgba(255, 255, 255, .6);
+      position: fixed;
+      top: 4px;
+      left: 10px;
+    }
+    #showControlsButton {
+      color: rgba(255, 255, 255, .6);
+      background-color: transparent;
+      position: fixed;
+      top: 4px;
+      left: 10px;
+      border: 1px solid rgba(255, 255, 255, .6);
+      border-radius: 5px;
+      cursor: pointer;
+      visibility: hidden;
     }
   </style>
+
+  <div id="controls" class="controlsHelp">
+    <p><strong>Controls</strong>:</p>
+    <p>WASD: Move</p>
+    <p>Arrow Keys: Turn Camera</p>
+    <p><em>Press any key to hide this text.</em></p>
+  </div>
+  <button id="showControlsButton">Show controls</button>
 
   <script type="module">
     import * as THREE from "https://unpkg.com/three@0.138.3/build/three.module.js";
 
     let renderer = new THREE.WebGLRenderer();
     let scene, camera;
+    let controlsVisible = true;
+
+    const controlsText = document.getElementById("controls");
+    const showControlsButton = document.getElementById("showControlsButton");
+    showControlsButton.onclick = () => {
+      if (!controlsVisible) {
+        controlsVisible = true;
+        showControlsButton.style.visibility = "hidden";
+        controlsText.style.visibility = "visible";
+      }
+    }
 
     window.onload = function () {
       camera = new THREE.PerspectiveCamera(
@@ -30,6 +67,11 @@
       const keydownMap = {};
 
       const keydownHandler = function (e) {
+        if (controlsVisible) {
+          controlsVisible = false;
+          controlsText.style.visibility = "hidden";
+          showControlsButton.style.visibility = "visible";
+        }
         keydownMap[e.key] = true;
       };
 
