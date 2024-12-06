@@ -1,132 +1,56 @@
-
-import { useRef, useEffect } from 'react';
-import * as THREE from 'three';
+import { useRef, useEffect, useState } from 'react';
 import { UploadedFile } from '../lib/files';
+import { createGalleryHtml } from '../lib/createGalleryHTML';
 
 interface Props {
   backgroundColor: string;
   imageFiles: UploadedFile[];
 }
 
-async function getImageDimensions(url: string): Promise<{ width: number, height: number }> {
-  return new Promise((res, _) => {
-    const image = new Image();
-    image.onload = () => {
-      res({ width: parseInt(`${image.width}`), height: parseInt(`${image.height}`) });
-    };
 
-    image.src = url;
-  });
+function downloadHtmlFile(filename: string, htmlContent: string) {
+  const blob = new Blob([htmlContent], { type: 'text/html' });
+  if ((window.navigator as any).msSaveOrOpenBlob) {
+    (window.navigator as any).msSaveBlob(blob, filename);
+  }
+  else {
+    const elem = window.document.createElement('a');
+    elem.href = window.URL.createObjectURL(blob);
+    elem.download = filename;
+    document.body.appendChild(elem);
+    elem.click();
+    document.body.removeChild(elem);
+  }
 }
 
 export default function Preview({ backgroundColor, imageFiles }: Props) {
   const mountRef = useRef(null);
+  const [htmlContent, setHtmlContent] = useState<string | null>(null);
 
   useEffect(() => {
-    if (mountRef.current === null) return;
-    const renderer = new THREE.WebGLRenderer();
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      (mountRef as any)?.current?.clientWidth / (mountRef as any)?.current?.clientHeight,
-      0.1,
-      1000
-    );
-    let lastTime = Date.now();
-
-    const keydownMap: { [key: string]: boolean } = {};
-    const keydownHandler = (e: any) => {
-      keydownMap[e.key] = true;
-    }
-    const keyupHandler = (e: any) => {
-      keydownMap[e.key] = false;
-    }
-    window.addEventListener('keydown', keydownHandler);
-    window.addEventListener('keyup', keyupHandler);
-
     (async () => {
+      const previewHtmlContent = await createGalleryHtml(backgroundColor, imageFiles);
+      setHtmlContent(previewHtmlContent);
       const localRef = mountRef as any;
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color(backgroundColor);
-
-      renderer.setSize(
-        localRef.current.clientWidth,
-        localRef.current.clientHeight
-      );
-      localRef.current.appendChild(renderer.domElement);
-
-      const GAP_ON_WALL = 1;
-
-      for (let i = 0; i < imageFiles.length; i++) {
-        const blobURL = URL.createObjectURL(imageFiles[i].file);
-        const imageDimensions = await getImageDimensions(blobURL);
-        const loader = new THREE.TextureLoader();
-        loader.load(
-          blobURL,
-          (texture) => {
-            const material = new THREE.MeshBasicMaterial({ map: texture });
-            const geometry = new THREE.PlaneGeometry(imageDimensions.width / imageDimensions.height, 1);
-            const plane = new THREE.Mesh(geometry, material);
-            scene.add(plane);
-
-            plane.position.y = 0;
-            if (i % 2 == 0) {
-              plane.position.x = 2;
-              plane.position.z = 2 -(Math.floor(i / 2) + (GAP_ON_WALL * Math.floor(i / 2)));
-              plane.rotation.y = -(Math.PI / 2);
-            } else {
-              plane.position.x = -2;
-              plane.position.z = 2 -(Math.floor(i / 2) + (GAP_ON_WALL * Math.floor(i / 2)));
-              plane.rotation.y = Math.PI / 2;
-            }
-            renderer.render(scene, camera);
-
-            URL.revokeObjectURL(blobURL);
-          },
-          undefined,
-          (error) => {
-            console.error('Error loading texture:', error);
-          }
-        );
+      if (localRef.current) {
+        let iframeDoc = localRef.current.contentDocument || localRef.current.contentWindow.document;
+        iframeDoc.open();
+        iframeDoc.write(previewHtmlContent);
+        iframeDoc.close();
       }
-
-      camera.position.z = 5;
-
-      // Animation Loop
-      const animate = () => {
-        requestAnimationFrame(animate);
-        const deltaTime = Date.now() - lastTime;
-        lastTime = Date.now();
-        if (keydownMap?.["w"]) {
-          camera.translateZ(-deltaTime / 300)
-        }
-        if (keydownMap?.["s"]) {
-          camera.translateZ(deltaTime / 300)
-        }
-        if (keydownMap?.["d"]) {
-          camera.translateX(deltaTime / 300)
-        }
-        if (keydownMap?.["a"]) {
-          camera.translateX(-deltaTime / 300)
-        }
-        if (keydownMap?.["ArrowRight"]) {
-          camera.rotation.y -= deltaTime / 600;
-        }
-        if (keydownMap?.["ArrowLeft"]) {
-          camera.rotation.y += deltaTime / 600;
-        }
-        renderer.render(scene, camera);
-      };
-      animate();
     })();
-
-    // Cleanup on component unmount
-    return () => {
-      window.removeEventListener('keydown', keydownHandler);
-      window.removeEventListener('keyup', keyupHandler);
-      (mountRef as any)?.current?.removeChild(renderer.domElement);
-    };
   }, []);
 
-  return <div className="shadow-lg" ref={mountRef} style={{ width: '1000px', height: '1000px' }} />;
+  return <div className="w-full flex flex-col items-center gap-3">
+    <iframe ref={mountRef} height="600px" width="800px" />
+    <button
+      className="bg-sky-600 color-white font-bold shadow-md hover:bg-sky-800 transition-colors shadow-lg"
+      disabled={htmlContent === null}
+      onClick={() => {
+        if (htmlContent === null) return;
+        downloadHtmlFile("gallery.html", htmlContent);
+      }}
+    >Download Webpage</button>
+  </div>
 };
 
