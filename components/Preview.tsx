@@ -43,14 +43,16 @@ export default function Preview({ backgroundColor, imageFiles }: Props) {
 
   return <div className="w-full flex flex-col items-center gap-3">
     <iframe ref={mountRef} height="600px" width="800px" />
-    <button
-      className="bg-sky-600 color-white font-bold shadow-md hover:bg-sky-800 transition-colors shadow-lg"
-      disabled={htmlContent === null}
-      onClick={() => {
-        if (htmlContent === null) return;
-        downloadHtmlFile("gallery.html", htmlContent);
-      }}
-    >Download Webpage</button>
+    <div>
+      <button
+        className="bg-sky-600 color-white font-bold shadow-md hover:bg-sky-800 transition-colors shadow-lg"
+        disabled={htmlContent === null}
+        onClick={() => {
+          if (htmlContent === null) return;
+          downloadHtmlFile("gallery.html", htmlContent);
+        }}
+      >Download Code</button>
+    </div>
   </div>
 };
 

@@ -4,6 +4,7 @@ import UploadScreen from "../components/UploadScreen";
 import { UploadedFile } from "../lib/files";
 import ConfigScreen from "../components/ConfigScreen";
 import Preview from "../components/Preview";
+import PublishScreen from "../components/PublishScreen";
 
 function clearQueryParams() {
   const url = new URL(window.location.href);
@@ -105,7 +106,9 @@ function App() {
               backgroundColor={backgroundColor}
               setBackgroundColor={setBackgroundColor}
             /> :
-            <Preview imageFiles={files} backgroundColor={backgroundColor} />
+            (stepIndex === 2 || !githubToken || !githubUsername) ?
+              <Preview imageFiles={files} backgroundColor={backgroundColor} /> :
+              <PublishScreen imageFiles={files} backgroundColor={backgroundColor} githubToken={githubToken} githubUsername={githubUsername} />
       }
       <div className="flex flex-row gap-4 text-white">
         <button
@@ -118,7 +121,8 @@ function App() {
           disabled={
             (stepIndex === 0 && files.length === 0) ||
             (stepIndex === 1 && (galleryName.length === 0)) ||
-            (stepIndex === 2)
+            (stepIndex === 2 && (!githubUsername)) ||
+            stepIndex === 3
           }
           onClick={() => { setStepIndex((i: number) => i + 1) }}
         >Next Step</button >

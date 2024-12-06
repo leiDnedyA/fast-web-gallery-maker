@@ -16,6 +16,15 @@ CORS(app)
 def ping():
     return "<p>Ping</p>"
 
+@app.route("/ping_site")
+@cross_origin()
+def ping_pages_site():
+    url = request.args.get("url")
+    if not url:
+        return Response("missing query param 'url'", 400)
+    response = requests.get(url)
+    return {"ok": response.ok}
+
 @app.route("/auth")
 def auth_redirect():
     return redirect(gh_api.oauth_url, code=302)
@@ -53,7 +62,7 @@ def create_github_pages():
         if not html_file:
             raise Exception("Missing HTML file")
     except:
-        return Response("Missing formdata file 'html_file'")
+        return Response("Missing formdata file 'html_file'", status=400)
 
     repo_name = None
     try:
