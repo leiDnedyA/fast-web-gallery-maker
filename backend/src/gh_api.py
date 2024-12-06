@@ -1,3 +1,4 @@
+import json
 from typing import TypedDict
 import time
 import requests
@@ -12,7 +13,7 @@ GH_APP_ID=os.environ["GITHUB_CLIENT_ID"]
 assert GH_PRIVATE_KEY
 assert GH_APP_ID
 
-oauth_url = f"https://github.com/login/oauth/authorize?client_id={GH_APP_ID}"
+oauth_url = f"https://github.com/login/oauth/authorize?client_id={GH_APP_ID}&scope=repo,pages"
 
 def create_user_token(code: str) -> str:
     response = requests.post(f"https://github.com/login/oauth/access_token?client_id={GH_APP_ID}&client_secret={GH_PRIVATE_KEY}&code={code}")
@@ -62,10 +63,11 @@ def create_repo(token: str, repo_name: str):
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
-        "X-GitHub-Api-Version": "2022-11-28"
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json"
     }
-    response = requests.post(f"{GH_BASE_URL}/user/repos", headers=headers, data={
+    response = requests.post(f"{GH_BASE_URL}/user/repos", headers=headers, data=json.dumps({
         "name": repo_name,
         "description": "This is a repo created using Fast Web Gallery Maker!",
-        "private": True})
+        "private": True}))
     print(response.json())
