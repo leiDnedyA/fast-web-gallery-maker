@@ -1,6 +1,8 @@
 import json
+import base64
 from typing import TypedDict
 import time
+import flask
 import requests
 from urllib.parse import parse_qs
 import os
@@ -45,9 +47,11 @@ def get_gh_username(token: str) -> str:
     data = response.json()
     return data["login"]
 
-    
+class RepoData(TypedDict):
+    full_repo_name: str
+    default_branch: str
 
-def create_repo(token: str, repo_name: str):
+def create_repo(token: str, repo_name: str) -> RepoData:
     """
     Mimics the following request:
     ```bash
@@ -69,5 +73,68 @@ def create_repo(token: str, repo_name: str):
     response = requests.post(f"{GH_BASE_URL}/user/repos", headers=headers, data=json.dumps({
         "name": repo_name,
         "description": "This is a repo created using Fast Web Gallery Maker!",
-        "private": True}))
-    print(response.json())
+        "private": False}))
+    data = response.json()
+    return {"full_repo_name": data["full_name"], "default_branch": data["default_branch"]}
+
+"""Repo name should be in the format "owner/name" """
+def commit_file(token: str, full_repo_name: str, file_contents: str, file_name: str):
+    """
+curl -L \
+  -X PUT \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer <YOUR-TOKEN>" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  https://api.github.com/repos/OWNER/REPO/contents/PATH \
+  -d '{"message":"my commit message","committer":{"name":"Monalisa Octocat","email":"octocat@github.com"},"content":"bXkgbmV3IGZpbGUgY29udGVudHM="}'
+    """
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json"
+    }
+
+    encoded_contents = base64.b64encode(file_contents.encode('utf-8'))
+    json_data = json.dumps({
+        "message": "Pushed to GitHub using Fast 3D Gallery Maker!", "content": encoded_contents.decode('utf-8')})
+    url = f"{GH_BASE_URL}/repos/{full_repo_name}/contents/{file_name}"
+    response = requests.put(url, headers=headers, data=json_data)
+
+    if not response.ok:
+        print(response.text)
+        raise Exception("Unable to commit file to github.")
+
+
+def create_gh_pages(token: str, full_repo_name: str, branch: str):
+    """
+curl -L \
+  -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer <YOUR-TOKEN>" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  https://api.github.com/repos/OWNER/REPO/pages \
+  -d '{"source":{"branch":"main","path":"/docs"}}'
+    """
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+    url = f"{GH_BASE_URL}/repos/{full_repo_name}/pages"
+    response = requests.post(url, headers=headers, data=json.dumps({"source": {"branch": branch}}))
+
+    if not response.ok:
+        print(branch)
+        print(response.text)
+        raise Exception("Unable to create gh pages.")
+
+    response = requests.get(url, headers=headers)
+
+    if not response.ok:
+        print(response.text)
+        raise Exception("Unable to get gh pages after publishing.")
+    data = response.json()
+    return data["html_url"]
+

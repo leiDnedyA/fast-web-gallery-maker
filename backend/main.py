@@ -61,13 +61,27 @@ def create_github_pages():
         if not repo_name:
             raise Exception("Missing repo_name")
     except:
-        return Response("Missing formdata field 'repo_name'")
+        return Response("Missing formdata field 'repo_name'", status=400)
 
     # Step 2: Create the repo
-    gh_api.create_repo(gh_token, repo_name)
+    full_repo_name = None
+    default_branch = None
+    try:
+        repo_data = gh_api.create_repo(gh_token, repo_name)
+        full_repo_name= repo_data["full_repo_name"]
+        default_branch= repo_data["default_branch"]
+    except:
+        return Response("Unable to create repo.", status=500)
 
     # Step 3: Push the code in the file to the repo
+    try:
+        html_content = html_file.read().decode('utf-8')
+        gh_api.commit_file(gh_token, full_repo_name, html_content, "index.html")
+    except:
+        return Response("Unable to push HTML to repo.", status=500)
 
     # Step 4: Create the github pages site
+    gh_pages_url = gh_api.create_gh_pages(gh_token, full_repo_name, default_branch)
+
     # Step 5: response with the gh pages site link
-    return ""
+    return {"url": gh_pages_url}
