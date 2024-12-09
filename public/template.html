@@ -33,10 +33,12 @@
   </style>
 
   <div id="controls" class="controlsHelp">
+    <p>Welcome to <strong><%= galleryName; %></strong></p>
     <p><strong>Controls</strong>:</p>
     <p>WASD: Move</p>
     <p>Arrow Keys: Turn Camera</p>
     <p><em>Press any key to hide this text.</em></p>
+    <p>Made with <a href="https://aydend.pythonanywhere.com/">Fast Web Gallery Maker :)</a></p>
   </div>
   <button id="showControlsButton">Show controls</button>
 
@@ -47,12 +49,14 @@
     let scene, camera;
     let controlsVisible = true;
 
-    let zNearWall = -3; // position at the start of the gallery hall
-    let zFarWall = 0; // position at the end of the gallery hall
+    const cameraZStart = 5;
+    let zNearWall = cameraZStart; // position at the start of the gallery hall
+    let zFarWall = cameraZStart; // position at the end of the gallery hall
 
-    let xNearWall = -1.8; // position on one side of gallery hall
-    let xFarWall = 1.8; // position at other side of gallery hall
+    let xNearWall = -2; // position on one side of gallery hall
+    let xFarWall = 2; // position at other side of gallery hall
 
+    const wallMargin = .2; // how close can the player get to a wall?
 
     const controlsText = document.getElementById("controls");
     const showControlsButton = document.getElementById("showControlsButton");
@@ -91,9 +95,11 @@
       window.addEventListener('keydown', keydownHandler);
       window.addEventListener('keyup', keyupHandler);
 
+      const color = '<%= backgroundColor; %>';
+
       (async function () {
         scene = new THREE.Scene();
-        scene.background = new THREE.Color('<%= backgroundColor; %>');
+        scene.background = new THREE.Color(color);
 
         renderer.setSize(
           window.innerWidth,
@@ -109,62 +115,89 @@
 
         ]; // Placeholder for image files, replace with actual files
 
+        const softLight2 = new THREE.PointLight(0xffffff, .9, 10); // Color, Intensity, Distance
+        softLight2.position.set(2, 5, cameraZStart + 2); // Position the light
+        softLight2.castShadow = true; // Enable shadows for realism
+        softLight2.shadow.radius = 4; // Adjust shadow softness
+        scene.add(softLight2);
+
         for (let i = 0; i < imageURLs.length; i++) {
           const blobURL = imageURLs[i];
 
           const imageDimensions = await getImageDimensions(blobURL);
           const loader = new THREE.TextureLoader();
 
-          loader.load(
-            blobURL,
-            function (texture) {
-              const material = new THREE.MeshBasicMaterial({map: texture});
-              const geometry = new THREE.PlaneGeometry(imageDimensions.width / imageDimensions.height, 1);
-              const plane = new THREE.Mesh(geometry, material);
-              scene.add(plane);
+          await new Promise((res, _) => {
+            loader.load(
+              blobURL,
+              function (texture) {
+                const material = new THREE.MeshBasicMaterial({map: texture});
+                const geometry = new THREE.PlaneGeometry(imageDimensions.width / imageDimensions.height, 1);
+                const plane = new THREE.Mesh(geometry, material);
+                scene.add(plane);
 
-              plane.position.y = 0;
-              if (i % 2 === 0) {
-                plane.position.x = 2;
-                plane.position.z = 2 - (Math.floor(i / 2) + (GAP_ON_WALL * Math.floor(i / 2)));
-                plane.rotation.y = -(Math.PI / 2);
-              } else {
-                plane.position.x = -2;
-                plane.position.z = 2 - (Math.floor(i / 2) + (GAP_ON_WALL * Math.floor(i / 2)));
-                plane.rotation.y = Math.PI / 2;
+                plane.position.y = 0;
+                if (i % 2 === 0) {
+                  plane.position.x = 2;
+                  plane.position.z = 2 - (Math.floor(i / 2) + (GAP_ON_WALL * Math.floor(i / 2)));
+                  plane.rotation.y = -(Math.PI / 2);
+                } else {
+                  plane.position.x = -2;
+                  plane.position.z = 2 - (Math.floor(i / 2) + (GAP_ON_WALL * Math.floor(i / 2)));
+                  plane.rotation.y = Math.PI / 2;
+                }
+                const zEnd = plane.position.z - 2;
+                if (zEnd < zNearWall) {
+                  zNearWall = zEnd;
+                }
+
+                renderer.render(scene, camera);
+
+                URL.revokeObjectURL(blobURL);
+                res();
+              },
+              undefined,
+              function (error) {
+                console.error('Error loading texture:', error);
               }
-              const zEnd = plane.position.z + 3;
-              if (zEnd > zFarWall) {
-                zFarWall = zEnd;
-              }
-
-              renderer.render(scene, camera);
-
-              URL.revokeObjectURL(blobURL);
-            },
-            undefined,
-            function (error) {
-              console.error('Error loading texture:', error);
-            }
-          );
+            );
+          });
         }
+
+        // Second light at end of hall
+        const softLight = new THREE.PointLight(0xffffff, .9, 10); // Color, Intensity, Distance
+        softLight.position.set(2, 5, zNearWall); // Position the light
+        softLight.castShadow = true; // Enable shadows for realism
+        softLight.shadow.radius = 4; // Adjust shadow softness
+        scene.add(softLight);
+
+
+        // Add a ground plane
+        const planeGeometry = new THREE.PlaneGeometry(xFarWall - xNearWall, zFarWall - zNearWall);
+        const planeMaterial = new THREE.MeshStandardMaterial({ color: (new THREE.Color(color)).getHex(), roughness: 0.8 });
+        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.rotation.x = -Math.PI / 2;
+        plane.position.y = -.6;
+        plane.position.z += (zFarWall - zNearWall) / 2 + zNearWall;
+        plane.receiveShadow = true;
+        scene.add(plane);
 
         camera.position.z = 5;
 
         function moveCamera(distance, direction) {
           const newZPosition = camera.position.z + Math.cos(direction) * distance;
           const newXPosition = camera.position.x + Math.sin(direction) * distance;
-          if (newZPosition < zNearWall) {
-            camera.position.z = zNearWall;
-          } else if (newZPosition > zFarWall) {
-            camera.position.z = zFarWall;
+          if (newZPosition < zNearWall + wallMargin) {
+            camera.position.z = zNearWall + wallMargin;
+          } else if (newZPosition > zFarWall - wallMargin) {
+            camera.position.z = zFarWall - wallMargin;
           } else {
             camera.position.z = newZPosition;
           }
-          if (newXPosition < xNearWall) {
-            camera.position.x = xNearWall;
-          } else if (newXPosition > xFarWall) {
-            camera.position.x = xFarWall;
+          if (newXPosition < xNearWall + wallMargin) {
+            camera.position.x = xNearWall + wallMargin;
+          } else if (newXPosition > xFarWall - wallMargin) {
+            camera.position.x = xFarWall - wallMargin;
           } else {
             camera.position.x = newXPosition;
           }

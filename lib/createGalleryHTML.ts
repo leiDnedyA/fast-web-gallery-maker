@@ -47,7 +47,7 @@ async function toDataURL(blob: Blob): Promise<string | ArrayBuffer | null> {
   })
 }
 
-export async function createGalleryHtml(backgroundColor: string, imageFiles: UploadedFile[]): Promise<string> {
+export async function createGalleryHtml(galleryName: string, backgroundColor: string, imageFiles: UploadedFile[]): Promise<string> {
   const templateHtmlRequest = await fetch('/template.html');
   const templateHtml = await templateHtmlRequest.text();
   let imageUrls: string[] = [];
@@ -59,5 +59,5 @@ export async function createGalleryHtml(backgroundColor: string, imageFiles: Upl
       console.error("image file not converted to string!")
     }
   }
-  return ejs.render(templateHtml, { imageUrls: imageUrls, backgroundColor });
+  return ejs.render(templateHtml, { imageUrls: imageUrls, backgroundColor, galleryName });
 }

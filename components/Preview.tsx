@@ -3,6 +3,7 @@ import { UploadedFile } from '../lib/files';
 import { createGalleryHtml } from '../lib/createGalleryHTML';
 
 interface Props {
+  galleryName: string;
   backgroundColor: string;
   imageFiles: UploadedFile[];
 }
@@ -23,13 +24,13 @@ function downloadHtmlFile(filename: string, htmlContent: string) {
   }
 }
 
-export default function Preview({ backgroundColor, imageFiles }: Props) {
+export default function Preview({ galleryName, backgroundColor, imageFiles }: Props) {
   const mountRef = useRef(null);
   const [htmlContent, setHtmlContent] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const previewHtmlContent = await createGalleryHtml(backgroundColor, imageFiles);
+      const previewHtmlContent = await createGalleryHtml(galleryName, backgroundColor, imageFiles);
       setHtmlContent(previewHtmlContent);
       const localRef = mountRef as any;
       if (localRef.current) {

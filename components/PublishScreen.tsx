@@ -17,6 +17,7 @@ function getRandomInt(min: number, max: number): number {
 let randomNumber = getRandomInt(1, 10);
 console.log(randomNumber);
 interface Props {
+  galleryName: string;
   backgroundColor: string;
   imageFiles: UploadedFile[];
   githubToken: string;
@@ -24,7 +25,7 @@ interface Props {
 }
 
 
-export default function PublishScreen({ backgroundColor, imageFiles, githubToken }: Props) {
+export default function PublishScreen({ galleryName, backgroundColor, imageFiles, githubToken }: Props) {
   const [htmlContent, setHtmlContent] = useState<string | null>(null);
   const [link, setLink] = useState<string | null>(null);
   const [createGhPagesLoading, setCreateGhPagesLoading] = useState<boolean>(false);
@@ -33,7 +34,7 @@ export default function PublishScreen({ backgroundColor, imageFiles, githubToken
 
   useEffect(() => {
     (async () => {
-      const htmlContent = await createGalleryHtml(backgroundColor, imageFiles);
+      const htmlContent = await createGalleryHtml(galleryName, backgroundColor, imageFiles);
       setHtmlContent(htmlContent);
     })();
   }, []);

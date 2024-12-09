@@ -116,8 +116,8 @@ function App() {
               setBackgroundColor={setBackgroundColor}
             /> :
             (stepIndex === 2 || !githubToken || !githubUsername) ?
-              <Preview imageFiles={files} backgroundColor={backgroundColor} /> :
-              <PublishScreen imageFiles={files} backgroundColor={backgroundColor} githubToken={githubToken} githubUsername={githubUsername} />
+              <Preview galleryName={galleryName} imageFiles={files} backgroundColor={backgroundColor} /> :
+              <PublishScreen galleryName={galleryName} imageFiles={files} backgroundColor={backgroundColor} githubToken={githubToken} githubUsername={githubUsername} />
       }
       <div className="flex flex-row gap-4 text-white">
         <button
