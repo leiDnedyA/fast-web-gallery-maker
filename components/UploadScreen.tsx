@@ -1,4 +1,4 @@
-import React, { useState, DragEvent, ChangeEvent } from "react";
+import { DragEvent, ChangeEvent } from "react";
 import { UploadedFile } from '../lib/files.ts';
 
 interface Props {
@@ -9,23 +9,19 @@ interface Props {
 export default function UploadScreen({
   files, setFiles
 }: Props) {
-  const [dragActive, setDragActive] = useState<boolean>(false);
 
   const handleDrag = (e: DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
     e.stopPropagation();
 
     if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
     } else if (e.type === "dragleave") {
-      setDragActive(false);
     }
   };
 
   const handleDrop = (e: DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
     e.stopPropagation();
-    setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const newFiles = Array.from(e.dataTransfer.files).map((file) => ({

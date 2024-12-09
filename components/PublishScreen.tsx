@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { UploadedFile } from '../lib/files';
 import { createGalleryHtml } from '../lib/createGalleryHTML';
 import { ClipLoader } from 'react-spinners';
@@ -23,7 +23,7 @@ interface Props {
 }
 
 
-export default function PublishScreen({ backgroundColor, imageFiles, githubToken, githubUsername }: Props) {
+export default function PublishScreen({ backgroundColor, imageFiles, githubToken }: Props) {
   const [htmlContent, setHtmlContent] = useState<string | null>(null);
   const [link, setLink] = useState<string | null>(null);
   const [createGhPagesLoading, setCreateGhPagesLoading] = useState<boolean>(false);
