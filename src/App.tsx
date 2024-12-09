@@ -81,10 +81,11 @@ function App() {
       <h1 className="mt-10 font-extrabold">Fast Web Gallery Maker</h1>
       <p className="text-lg">Create and host an online 3D gallery of your artwork with nothing but a GitHub account!</p>
       {
-        (!githubToken && import.meta.env.VITE_BACKEND_URL) ? <button
+        !githubToken ? <button
           className="bg-purple-800 font-bold"
           onClick={() => {
-            window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth`
+            const environment: "production" | "development" = import.meta.env.MODE as any;
+            window.location.href = `/auth?mode=${environment}`
           }}
         >Connect Your GitHub Account</button> : <p>Signed in with GitHub as <span className="font-bold">{githubUsername}</span>.
           {' '}

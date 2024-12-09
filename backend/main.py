@@ -27,7 +27,13 @@ def ping_pages_site():
 
 @app.route("/auth")
 def auth_redirect():
-    return redirect(gh_api.oauth_url, code=302)
+    mode = request.args.get("mode")
+    print(mode)
+    final_redirect_uri = "https://aydend.pythonanywhere.com/" if mode == "production" else "http://localhost:5173/"
+    gh_auth_url = f"{gh_api.oauth_url}&redirect_uri={final_redirect_uri}"
+    print(gh_auth_url)
+
+    return redirect(gh_auth_url, code=302)
 
 @app.route("/gh_token")
 @cross_origin()
