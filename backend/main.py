@@ -4,7 +4,7 @@ import jwt
 import dotenv
 import os
 from src import gh_api
-from flask import Flask, Response, redirect, request
+from flask import Flask, Response, redirect, request, send_from_directory
 from flask_cors import CORS, cross_origin
 
 dotenv.load_dotenv()
@@ -94,3 +94,8 @@ def create_github_pages():
 
     # Step 5: response with the gh pages site link
     return {"url": gh_pages_url}
+
+@app.route('/<path:path>')
+def send_static(path):
+    return send_from_directory('static', path)
+
