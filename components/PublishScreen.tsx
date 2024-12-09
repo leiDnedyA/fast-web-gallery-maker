@@ -51,7 +51,7 @@ export default function PublishScreen({ backgroundColor, imageFiles, githubToken
         data.append('html_file', blob);
         data.append('repo_name', `gallery_site_${getRandomInt(0, 100)}`);
         console.log(data);
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/create_github_pages`,
+        const response = await fetch(`/api/create_github_pages`,
           {
             method: "POST",
             headers: {
@@ -69,7 +69,7 @@ export default function PublishScreen({ backgroundColor, imageFiles, githubToken
           let MAX_PING_COUNT = 20_000;
           const interval = setInterval(async () => {
             counter++;
-            const siteResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/ping_site?url=${encodeURIComponent(url)}`);
+            const siteResponse = await fetch(`/api/ping_site?url=${encodeURIComponent(url)}`);
             const siteResponseJson = await siteResponse.json();
             if (siteResponseJson.ok) {
               setPingingSite(false);

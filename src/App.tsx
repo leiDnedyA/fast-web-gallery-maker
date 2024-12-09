@@ -17,7 +17,7 @@ function clearQueryParams() {
 }
 
 async function getGithubUsername(token: string): Promise<string | null> {
-  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/gh_username`, {
+  const response = await fetch(`/api/gh_username`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -48,7 +48,7 @@ function App() {
       (async () => {
         if (githubTokenCode && import.meta.env.VITE_BACKEND_URL) {
           console.log(githubTokenCode)
-          const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/gh_token?code=${githubTokenCode}`);
+          const response = await fetch(`/api/gh_token?code=${githubTokenCode}`);
           if (!response.ok) {
             alert("Failed to authenticate with GitHub.")
             clearQueryParams();
