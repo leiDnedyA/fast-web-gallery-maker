@@ -14,7 +14,7 @@ CORS(app)
 
 @app.route("/")
 def ping():
-    return "<p>Ping</p>"
+    return send_from_directory('static', 'index.html')
 
 @app.route("/ping_site")
 @cross_origin()
