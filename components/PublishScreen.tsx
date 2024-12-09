@@ -52,7 +52,7 @@ export default function PublishScreen({ backgroundColor, imageFiles, githubToken
         data.append('html_file', blob);
         data.append('repo_name', `gallery_site_${getRandomInt(0, 100)}`);
         console.log(data);
-        const response = await fetch(adjustEndpointToEnvironment("/api/create_github_pages"),
+        const response = await fetch(adjustEndpointToEnvironment("/create_github_pages"),
           {
             method: "POST",
             headers: {
