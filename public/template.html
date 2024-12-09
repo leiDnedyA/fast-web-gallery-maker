@@ -47,8 +47,12 @@
     let scene, camera;
     let controlsVisible = true;
 
-    let zNearWall = -10; // position at the start of the gallery hall
+    let zNearWall = -3; // position at the start of the gallery hall
     let zFarWall = 0; // position at the end of the gallery hall
+
+    let xNearWall = -1.8; // position on one side of gallery hall
+    let xFarWall = 1.8; // position at other side of gallery hall
+
 
     const controlsText = document.getElementById("controls");
     const showControlsButton = document.getElementById("showControlsButton");
@@ -129,7 +133,7 @@
                 plane.position.z = 2 - (Math.floor(i / 2) + (GAP_ON_WALL * Math.floor(i / 2)));
                 plane.rotation.y = Math.PI / 2;
               }
-              const zEnd = plane.position.z + 1;
+              const zEnd = plane.position.z + 3;
               if (zEnd > zFarWall) {
                 zFarWall = zEnd;
               }
@@ -150,20 +154,20 @@
         function moveCamera(distance, direction) {
           const newZPosition = camera.position.z + Math.cos(direction) * distance;
           const newXPosition = camera.position.x + Math.sin(direction) * distance;
-          console.log('z', newZPosition, camera.position.z);
-          console.log('x', newXPosition, camera.position.x);
           if (newZPosition < zNearWall) {
-            console.log('near', camera.position.z, zNearWall)
             camera.position.z = zNearWall;
           } else if (newZPosition > zFarWall) {
-            console.log('far', camera.position.z, zFarWall)
             camera.position.z = zFarWall;
           } else {
             camera.position.z = newZPosition;
           }
-          console.log('bounds', zNearWall, zFarWall)
-          camera.position.x = newXPosition;
-          camera.position.z = newZPosition;
+          if (newXPosition < xNearWall) {
+            camera.position.x = xNearWall;
+          } else if (newXPosition > xFarWall) {
+            camera.position.x = xFarWall;
+          } else {
+            camera.position.x = newXPosition;
+          }
         }
 
         // Animation Loop
@@ -178,7 +182,6 @@
           if (keydownMap["w"]) {
             moveCamera(distance, cameraRotation);
           }
-
           if (keydownMap["s"]) {
             moveCamera(distance, cameraRotation + Math.PI);
           }
