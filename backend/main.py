@@ -3,7 +3,7 @@ import datetime
 import jwt
 import dotenv
 import os
-from src import gh_api
+from src import gh_api, utils
 from flask import Flask, Response, redirect, request, send_from_directory
 from flask_cors import CORS, cross_origin
 
@@ -28,12 +28,18 @@ def ping_pages_site():
 @app.route("/auth")
 def auth_redirect():
     mode = request.args.get("mode")
-    print(mode)
     final_redirect_uri = "https://aydend.pythonanywhere.com/" if mode == "production" else "http://localhost:5173/"
     gh_auth_url = f"{gh_api.oauth_url}&redirect_uri={final_redirect_uri}"
-    print(gh_auth_url)
-
     return redirect(gh_auth_url, code=302)
+
+@app.route("/test_app_installed")
+def test_app_installed():
+    auth_header = request.headers.get("Authorization")
+    token = utils.get_bearer_token(auth_header)
+    if not token:
+        return Response("Missing auth token.", 401)
+    installed = gh_api.test_access_token(token)
+    return {"is_installed": installed}
 
 @app.route("/gh_token")
 @cross_origin()
@@ -47,9 +53,9 @@ def create_user_token():
 @cross_origin()
 def get_gh_username():
     auth_header = request.headers.get("authorization")
-    if not auth_header or len(auth_header.split(" ")) < 2:
+    gh_token = utils.get_bearer_token(auth_header)
+    if not gh_token:
         return Response("Missing auth header", status=401)
-    gh_token = auth_header.split(" ")[1]
     return {"github_username": gh_api.get_gh_username(gh_token)}
 
 
@@ -58,9 +64,9 @@ def get_gh_username():
 def create_github_pages():
     # Step 1: Get the html file, repo name, and github token attached to the request
     auth_header = request.headers.get("authorization")
-    if not auth_header or len(auth_header.split(" ")) < 2:
+    gh_token = utils.get_bearer_token(auth_header)
+    if not gh_token:
         return Response("Missing auth header", status=401)
-    gh_token = auth_header.split(" ")[1]
 
     html_file = None
     try:

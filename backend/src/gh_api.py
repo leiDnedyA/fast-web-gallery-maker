@@ -23,7 +23,6 @@ def create_user_token(code: str) -> str:
         raise Exception("Failed to generate GitHub user token")
     data = parse_qs(response.text)
     access_token_list = data.get("access_token")
-    print(data)
     if not access_token_list:
         raise Exception("Failed to generate GitHub user token")
     return access_token_list[0]
@@ -138,3 +137,13 @@ curl -L \
     data = response.json()
     return data["html_url"]
 
+def test_access_token(token: str) -> bool:
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+    url = "https://api.github.com/user/installations"
+    response = requests.get(url, headers=headers)
+    data = response.json()
+    if not data["total_count"]:
+        return False
+    return True

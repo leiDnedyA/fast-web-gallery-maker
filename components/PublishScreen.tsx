@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { UploadedFile } from '../lib/files';
 import { createGalleryHtml } from '../lib/createGalleryHTML';
 import { ClipLoader } from 'react-spinners';
+import { adjustEndpointToEnvironment } from '../lib/utils';
 
 function getRandomInt(min: number, max: number): number {
   // Ensure that min and max are integers
@@ -51,7 +52,7 @@ export default function PublishScreen({ backgroundColor, imageFiles, githubToken
         data.append('html_file', blob);
         data.append('repo_name', `gallery_site_${getRandomInt(0, 100)}`);
         console.log(data);
-        const response = await fetch(`/api/create_github_pages`,
+        const response = await fetch(adjustEndpointToEnvironment("/api/create_github_pages"),
           {
             method: "POST",
             headers: {
@@ -69,7 +70,7 @@ export default function PublishScreen({ backgroundColor, imageFiles, githubToken
           let MAX_PING_COUNT = 20_000;
           const interval = setInterval(async () => {
             counter++;
-            const siteResponse = await fetch(`/api/ping_site?url=${encodeURIComponent(url)}`);
+            const siteResponse = await fetch(adjustEndpointToEnvironment(`/ping_site?url=${encodeURIComponent(url)}`));
             const siteResponseJson = await siteResponse.json();
             if (siteResponseJson.ok) {
               setPingingSite(false);

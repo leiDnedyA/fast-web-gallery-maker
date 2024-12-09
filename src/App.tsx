@@ -5,6 +5,7 @@ import { UploadedFile } from "../lib/files";
 import ConfigScreen from "../components/ConfigScreen";
 import Preview from "../components/Preview";
 import PublishScreen from "../components/PublishScreen";
+import { adjustEndpointToEnvironment, ENVIRONMENT } from "../lib/utils";
 
 function clearQueryParams() {
   const url = new URL(window.location.href);
@@ -17,7 +18,7 @@ function clearQueryParams() {
 }
 
 async function getGithubUsername(token: string): Promise<string | null> {
-  const response = await fetch(`/api/gh_username`, {
+  const response = await fetch(adjustEndpointToEnvironment(`/gh_username`), {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -47,8 +48,7 @@ function App() {
     if (!githubToken) {
       (async () => {
         if (githubTokenCode && import.meta.env.VITE_BACKEND_URL) {
-          console.log(githubTokenCode)
-          const response = await fetch(`/api/gh_token?code=${githubTokenCode}`);
+          const response = await fetch(adjustEndpointToEnvironment(`/gh_token?code=${githubTokenCode}`));
           if (!response.ok) {
             alert("Failed to authenticate with GitHub.")
             clearQueryParams();
@@ -59,9 +59,18 @@ function App() {
             localStorage.setItem('githubToken', responseJSON.access_token);
             setGithubUsername(await getGithubUsername(responseJSON.access_token));
             setGithubToken(responseJSON.access_token)
+            // Test to see if the user has installed the app
+            const testInstallationResponse = await fetch(adjustEndpointToEnvironment(`/test_app_installed`), {
+              headers: {
+                'Authorization': `Bearer ${responseJSON.access_token}`
+              }
+            })
+            const testInstallObj = await testInstallationResponse.json();
+            if (!testInstallObj?.is_installed) {
+              window.location.href = "https://github.com/apps/fastgallery3d/installations/new"
+            }
           }
           clearQueryParams();
-          window.location.href = "https://github.com/apps/fastgallery3d/installations/new"
         }
       })();
     } else {
@@ -84,8 +93,7 @@ function App() {
         !githubToken ? <button
           className="bg-purple-800 font-bold"
           onClick={() => {
-            const environment: "production" | "development" = import.meta.env.MODE as any;
-            window.location.href = `/auth?mode=${environment}`
+            window.location.href = adjustEndpointToEnvironment(`/auth?mode=${ENVIRONMENT}`);
           }}
         >Connect Your GitHub Account</button> : <p>Signed in with GitHub as <span className="font-bold">{githubUsername}</span>.
           {' '}
